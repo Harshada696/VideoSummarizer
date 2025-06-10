@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+
+  <style>
+    .bubble {
+      position: absolute;
+      bottom: -150px;
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: rise 20s infinite;
+    }
+
+    @keyframes rise {
+      0% {
+        transform: translateX(0) translateY(0);
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateX(calc(-50% + 100px)) translateY(-800px);
+        opacity: 0;
+      }
+    }
+
+    /* Bubble styles - shortened for brevity */
+    .bubble:nth-child(1) { width: 40px; height: 40px; background: rgba(255, 255, 255, 0.8); left: 20%; animation-delay: 0s; }
+    .bubble:nth-child(2) { width: 60px; height: 60px; background: rgba(255, 255, 255, 0.6); left: 50%; animation-delay: 5s; }
+    .bubble:nth-child(3) { width: 30px; height: 30px; background: rgba(255, 255, 255, 0.7); left: 70%; animation-delay: 2s; }
+    .bubble:nth-child(4) { width: 50px; height: 50px; background: rgba(255, 255, 255, 0.5); left: 30%; animation-delay: 4s; }
+    .bubble:nth-child(5) { width: 20px; height: 20px; background: rgba(255, 255, 255, 0.9); left: 80%; animation-delay: 6s; }
+    .bubble:nth-child(6) { width: 80px; height: 80px; background: rgba(255, 255, 255, 0.9); left: 80%; animation-delay: 1s; }
+    /* Add rest as needed */
+
+  </style>
+</head>
+<body class="bg-gray-100 relative overflow-hidden" style="background: linear-gradient(135deg, #ff6ec4, #7873f5);">
+  <!-- Bubbles -->
+  <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+  <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+  <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+
+  <div class="flex relative z-10">
+    <!-- Sidebar -->
+    <div class="w-1/5 bg-purple-600 h-screen p-5" style="background: linear-gradient(to right, #c05cb6, #460a58);">
+      <div class="text-white text-2xl font-bold mb-10">Summery.Ai</div>
+      <ul class="text-white space-y-4">
+        <li class="flex items-center space-x-2"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></li>
+        <li class="flex items-center space-x-2 cursor-pointer" id="manage-users"><i class="fas fa-user"></i><span>Manage Users</span></li>
+        <li class="flex items-center space-x-2"><i class="fas fa-sign-out-alt"></i><span><a href="/admin/logout">Logout</a></span></li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="w-4/5 p-10">
+      <div class="flex justify-between items-center mb-10">
+        <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+        <div class="flex items-center space-x-4">
+          <input class="p-2 border rounded" placeholder="Search..." type="text" />
+          <img alt="User" class="rounded-full" height="40" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqBezKKAEYvyEAPpiuo1WDE02x1_5LoujG7w&s" width="40"/>
+        </div>
+      </div>
+
+      <!-- Cards Section -->
+      <div class="grid grid-cols-4 gap-4 mb-10">
+        <div class="bg-red-100 p-5 rounded-lg shadow">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="text-xl font-bold">Users</h2>
+              <p class="text-red-500">Manage Users</p>
+            </div>
+            <i class="fas fa-users text-purple-500 text-2xl"></i>
+          </div>
+        </div>
+        <div class="bg-blue-100 p-5 rounded-lg shadow">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="text-xl font-bold">See Review</h2>
+              <p class="text-blue-500">View Reviews</p>
+            </div>
+            <i class="fas fa-comments text-blue-500 text-2xl"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Table -->
+      <div class=" p-5 rounded-lg shadow hidden" id="user-section" style="background: linear-gradient(135deg, #ff6ec4, #7873f5);">
+        <table id="userTable" class="w-full" >
+
+          <thead style="background: linear-gradient(135deg, #ff6ec4,rgb(125, 34, 204));">
+            <tr class="bg-gray-200 text-left" style="background: linear-gradient(135deg, #ff6ec4,rgb(121, 31, 211));">
+              <th class="p-3 bg-pink">ID</th>
+              <th class="p-3 bg-pink">Username</th>
+              <th class="p-3 bg-pink">Email</th>
+              <th class="p-3 bg-pink">Delete</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('manage-users').onclick = function () {
+      fetchUsers();
+    };
+
+    function fetchUsers() {
+      fetch('/api/users')
+        .then(response => response.json())
+        .then(data => {
+          const tbody = document.querySelector('#userTable tbody');
+          const section = document.getElementById('user-section');
+          section.classList.remove('hidden');
+          tbody.innerHTML = '';
+
+          data.forEach(user => {
+            const row = document.createElement('tr');
+            row.classList.add('border-b');
+            row.innerHTML = `
+              <td class="p-3">${user.id}</td>
+              <td class="p-3">${user.username}</td>
+              <td class="p-3">${user.email}</td>
+              <td class="p-3">
+                <button class="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600" 
+                  style="background: linear-gradient(135deg, #ff6ec4, pink);"
+                  onclick="deleteUser(${user.id})">
+                  Delete
+                </button>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+        })
+        .catch(error => console.error('Error fetching users:', error));
+    }
+
+    function deleteUser(userId) {
+      if (confirm('Are you sure you want to delete this user?')) {
+        fetch(`/api/users/${userId}`, { method: 'DELETE' })
+          .then(response => {
+            if (response.ok) {
+              alert('User deleted successfully');
+              fetchUsers();
+            } else {
+              alert('Error deleting user: ' + response.statusText);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred.');
+          });
+      }
+    }
+  </script>
+</body>
+</html>

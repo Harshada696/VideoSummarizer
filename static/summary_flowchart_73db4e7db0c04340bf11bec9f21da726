@@ -1,0 +1,7 @@
+digraph {
+	N0 [label="[0:00] What is Python?"]
+	N1 [label="[0:02] Python is a general purpose, dynamic, high level, and interpreted programming language."]
+	N0 -> N1
+	N2 [label="[0:08] It supports object-oriented programming approach to develop applications."]
+	N1 -> N2
+}

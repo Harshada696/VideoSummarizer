@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Video Summary Generator</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <style>
+        body {
+            padding: 2rem;
+            background: radial-gradient(ellipse at top left, #fdf4ff, #f0abfc);
+            font-family: 'Patrick Hand', cursive;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            animation: float 20s infinite;
+        }
+        .bubble1 { width: 200px; height: 200px; top: 10%; left: 5%; background: #c084fc; }
+        .bubble2 { width: 300px; height: 300px; top: 40%; left: 70%; background: #f472b6; }
+        .bubble3 { width: 150px; height: 150px; top: 70%; left: 20%; background: #8b5cf6; }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+            100% { transform: translateY(0); }
+        }
+
+        .container {
+            max-width: 960px;
+            margin: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            margin-bottom: 2rem;
+            font-weight: bold;
+            background: linear-gradient(to right, #ec4899, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-title {
+            margin-top: 2rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #6b21a8;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: #ffffffc9;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border-left: 4px solid #a855f7;
+        }
+
+        pre strong {
+            font-weight: bold;
+            background: linear-gradient(to right, #ec4899, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        img {
+            max-width: 100%;
+            margin-top: 1rem;
+            border-radius: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #ec4899, #8b5cf6);
+            border: none;
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .download-buttons {
+            margin-top: 1rem;
+        }
+
+        .interactive-chart {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #fff;
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-light mb-4 rounded shadow-sm px-4 py-2">
+        <div class="container-fluid justify-content-between">
+            <a class="navbar-brand fw-bold" href="#">Summery.Ai</a>
+    
+            {% if session.username %}
+            <div class="d-flex align-items-center">
+                <span class="me-3">
+                    👤 <strong>{{ session.username }}</strong>
+                </span>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+    
+
+<!-- Bubbles -->
+<div class="bubble bubble1"></div>
+<div class="bubble bubble2"></div>
+<div class="bubble bubble3"></div>
+
+<div class="container">
+    <h1 class="text-center">🎥 Video Summary Generator</h1>
+
+    <form method="POST" action="/upload" enctype="multipart/form-data" class="mb-5">
+        <div class="mb-3">
+            <label for="file" class="form-label">Upload a video file (MP4, etc.):</label>
+            
+            <input type="file" name="file" id="file" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2">🚀 Generate Summary</button>
+        <div id="loadingSpinner" class="text-center" style="display: none;">
+            <div class="spinner-border text-primary mt-3" role="status">
+                <span class="visually-hidden">Processing...</span>
+            </div>
+            <p>Processing your video. Please wait...</p>
+        </div>
+        
+    </form>
+
+    {% if transcript %}
+        <h3 class="section-title">📝 Transcript</h3>
+        <pre>{{ transcript }}</pre>
+    {% endif %}
+
+    {% if summary %}
+        <h3 class="section-title">📌 Summary & Keywords </h3>
+        <pre>{{ summary | replace("**", "<strong>") | replace("**", "</strong>") | safe }}</pre>
+    {% endif %}
+
+    {% if summary %}
+        <div class="interactive-chart">
+            <h3 class="section-title">🌳 Interactive Flow from Keywords</h3>
+            <svg id="d3-chart" width="100%" height="400"></svg>
+            <button id="download-svg" class="btn btn-outline-secondary mt-3">⬇️ Download Flow Diagram</button>
+        </div>
+    {% endif %}
+</div>
+
+{% if summary %}
+<script>
+    const summaryText = {{ summary | tojson | safe }};
+    const keywordSection = summaryText.split("**Keywords:**")[1] || "";
+    const keywords = keywordSection.split(",").map(k => k.trim()).filter(k => k);
+
+    const data = {
+        name: "Summary 🌟",
+        children: keywords.map(k => ({ name: `🔑 ${k}` }))
+    };
+
+    const width = 800;
+    const height = 400;
+
+    const svg = d3.select("#d3-chart").attr("viewBox", [0, 0, width, height]);
+    const root = d3.hierarchy(data);
+    const treeLayout = d3.tree().size([width - 100, height - 100]);
+    treeLayout(root);
+
+    svg.selectAll('line.link')
+        .data(root.links())
+        .join('line')
+        .attr('x1', d => d.source.x + 50)
+        .attr('y1', d => d.source.y + 50)
+        .attr('x2', d => d.target.x + 50)
+        .attr('y2', d => d.target.y + 50)
+        .attr('stroke', '#ccc')
+        .attr('stroke-width', 2);
+
+    svg.selectAll('rect.node')
+        .data(root.descendants())
+        .join('rect')
+        .attr('x', d => d.x + 10)
+        .attr('y', d => d.y + 30)
+        .attr('rx', 20)
+        .attr('ry', 20)
+        .attr('width', 120)
+        .attr('height', 40)
+        .attr('fill', (d, i) => i === 0 ? '#7e22ce' : '#ec4899')
+        .attr('stroke', '#f9fafb')
+        .attr('stroke-width', 2);
+
+    svg.selectAll('text.label')
+        .data(root.descendants())
+        .join('text')
+        .attr('x', d => d.x + 70)
+        .attr('y', d => d.y + 55)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#ffffff')
+        .attr('font-size', '14px')
+        .attr('font-family', '"Patrick Hand", cursive')
+        .text(d => d.data.name);
+</script>
+
+<script>
+    document.getElementById("download-svg").addEventListener("click", function () {
+        const svg = document.getElementById("d3-chart");
+        const serializer = new XMLSerializer();
+        let source = serializer.serializeToString(svg);
+
+        if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+            source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+        }
+        if (!source.match(/^<svg[^>]+"http:\/\/www\.w3\.org\/1999\/xlink"/)) {
+            source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+        }
+
+        source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+        const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "interactive_flowchart.svg";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+</script>
+{% endif %}
+<script>
+    const form = document.querySelector("form");
+    const spinner = document.getElementById("loadingSpinner");
+
+    form.addEventListener("submit", () => {
+        spinner.style.display = "block";
+    });
+</script>
+
+</body>
+</html>
