@@ -1,6 +1,6 @@
 # VideoSummarizer
 
-VideoSummarizer is a Flask-based web application that allows users to upload educational videos, extract transcripts, generate summaries, extract keywords, and visualize the content flow using a flowchart. It supports user registration/login and includes an admin panel to manage users.
+**VideoSummarizer** is a Flask-based web application that allows users to upload educational videos, extract transcripts, generate summaries, extract keywords, and visualize the content flow using a flowchart. It supports user registration/login and includes an admin panel to manage users.
 
 ---
 
@@ -8,10 +8,10 @@ VideoSummarizer is a Flask-based web application that allows users to upload edu
 
 - 🎥 Upload video files with audio
 - 🔊 Extract audio from video using MoviePy
-- 📝 Transcribe audio using OpenAI's Whisper
-- 📚 Generate summaries using PEGASUS (transformers)
+- 📝 Transcribe audio using OpenAI's Whisper (via faster-whisper)
+- 📚 Generate summaries using PEGASUS (Transformers)
 - 🧠 Extract keywords using KeyBERT
-- 📊 Visualize summaries as flowcharts (Graphviz)
+- 📊 Visualize summaries as flowcharts using Graphviz
 - 👤 User authentication (register/login/logout)
 - 🛠️ Admin dashboard to manage users
 
@@ -30,53 +30,93 @@ VideoSummarizer is a Flask-based web application that allows users to upload edu
 
 ---
 
-📁 Project Structure
-Videosummerizer/
+## 📁 Project Structure
+
+videosummerizer/
 │
-├── uploads/           # Uploaded videos
-├── audio/             # Audio files extracted from video
-├── static/            # Flowchart images
-├── templates/         # HTML templates
-├── app.py             # Flask application
-├── requirements.txt   # Python dependencies
-└── README.md          # Documentation
----
-🔐 Admin Login
-txt
+├── uploads/ # Uploaded videos
+├── audio/ # Audio files extracted from videos
+├── static/ # Flowchart images
+├── templates/ # HTML templates (login.html, index.html, admin.html)
+├── app.py # Flask application
+├── requirements.txt # Python dependencies
+└── README.md # Project documentation
+
+yaml
 Copy
 Edit
+
+---
+
+## 🔐 Admin Login
+
+**Default Admin Credentials:**
+
 Username: admin
 Password: admin_password
-Edit app.py to change this:
 
-python
+css
 Copy
 Edit
+
+To change these, edit the `app.py` file:
+
+```python
 if username == 'admin' and password == 'admin_password':
----
 🧪 Running the App
 bash
 Copy
 Edit
 python app.py
-Navigate to: http://127.0.0.1:5000
----
+Then open your browser and navigate to:
 
-## 📦 Installation
+cpp
+Copy
+Edit
+http://127.0.0.1:5000
+📦 Installation
+Prerequisites
+Python 3.7+
 
-### Prerequisites
+MySQL Server
 
-- Python 3.7+
-- MySQL Server
-- Graphviz (with PATH set)
-- FFmpeg (required by MoviePy)
+FFmpeg (required by MoviePy)
 
-### Clone and Set Up
+Graphviz (installed and added to system PATH)
 
-```bash
-git clone https://github.com/yourusername/smarteduhub.git
-cd smarteduhub
+Clone and Set Up
+bash
+Copy
+Edit
+git clone https://github.com/yourusername/videosummerizer.git
+cd videosummerizer
 python -m venv venv
-source venv/bin/activate  # For Windows: venv\Scripts\activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
+🛠️ MySQL Database Setup
+Log into MySQL and run:
 
+sql
+Copy
+Edit
+CREATE DATABASE smarteduhub;
+USE smarteduhub;
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+Update your MySQL credentials in app.py:
+
+python
+Copy
+Edit
+def get_db_connection():
+    return mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='your_mysql_password',
+        database='smarteduhub'
+    )
