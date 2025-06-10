@@ -32,7 +32,7 @@
 
 ## 📁 Project Structure
 
-videosummerizer/
+```videosummerizer/
 │
 ├── uploads/ # Uploaded videos
 ├── audio/ # Audio files extracted from videos
@@ -41,12 +41,7 @@ videosummerizer/
 ├── app.py # Flask application
 ├── requirements.txt # Python dependencies
 └── README.md # Project documentation
-
-yaml
-Copy
-Edit
-
----
+```
 
 ## 🔐 Admin Login
 
@@ -56,8 +51,6 @@ Username: admin
 Password: admin_password
 
 css
-Copy
-Edit
 
 To change these, edit the `app.py` file:
 
@@ -65,14 +58,10 @@ To change these, edit the `app.py` file:
 if username == 'admin' and password == 'admin_password':
 🧪 Running the App
 bash
-Copy
-Edit
 python app.py
 Then open your browser and navigate to:
 
 cpp
-Copy
-Edit
 http://127.0.0.1:5000
 📦 Installation
 Prerequisites
@@ -86,8 +75,6 @@ Graphviz (installed and added to system PATH)
 
 Clone and Set Up
 bash
-Copy
-Edit
 git clone https://github.com/yourusername/videosummerizer.git
 cd videosummerizer
 python -m venv venv
@@ -97,8 +84,6 @@ pip install -r requirements.txt
 Log into MySQL and run:
 
 sql
-Copy
-Edit
 CREATE DATABASE smarteduhub;
 USE smarteduhub;
 
@@ -111,8 +96,6 @@ CREATE TABLE users (
 Update your MySQL credentials in app.py:
 
 python
-Copy
-Edit
 def get_db_connection():
     return mysql.connector.connect(
         host='localhost',
